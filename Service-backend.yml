@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: backend-container  # very imp -- nginx proxypass need this name
+  labels:
+    app: backend-container
+spec: 
+  # type: cluster IP is  a default service
+  selector:
+    app: backend-container
+  ports:
+    - name: http
+      port: 5000 # clusterip service port
+      targetPort: 5000 # container port
+    

@@ -1,0 +1,70 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: backend-container
+#   labels: 
+#     app: backend-container
+# spec:
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: backend-container
+#   template: 
+#     metadata:
+#       labels:
+#         app: backend-container
+#     spec:
+#       containers:
+#         - name: backend-container
+#           image: paraskamboj/backend-app:v3
+#           ports:
+#             - containerPort: 5000
+
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: backend-container
+  labels:
+    app: backend-container
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend-container
+  template:  
+    metadata:
+      labels: 
+        app: backend-container
+    spec:
+      initContainers: 
+        - name: init-db
+          image: busybox:1.31
+          command: ['sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z mysql 3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";']
+      containers:
+        - name: backend-container
+          image: paraskamboj/backend-app:v4
+          ports: 
+            - containerPort: 5000           
+          env:
+            - name: DB_HOST
+              value: "mysql"            
+            - name: DB_PORT
+              value: "3306"            
+            - name: DB_NAME
+              value: "users"            
+            - name: DB_USER
+              value: "admin"            
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-db-password
+                  key: db-password      
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory:  "128Mi"
+            limits:
+              cpu: "1000m"
+              memory: "500Mi"
